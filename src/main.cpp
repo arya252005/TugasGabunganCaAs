@@ -88,5 +88,5 @@ void loop() {
   }
 
   Serial.println("=====================================\n");
-  delay(30000); // kirim tiap 30 detik
+  delay(2000); 
 }
