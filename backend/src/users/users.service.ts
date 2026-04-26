@@ -28,7 +28,7 @@ export class UsersService {
     return this.userRepo.findOne({ where: { id } })
   }
 
-  // Hapus password sebelum return ke client
+  //TODO: delete pw before return -> client
   sanitize(user: User) {
     const { password, ...safe } = user
     return safe

@@ -38,8 +38,7 @@ function TrendChart({ trend, loading }) {
   if (loading) return <Skel h={120} style={{ borderRadius: 8 }}/>
   if (!trend?.length) return (
     <div style={{ height: 120, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
-      <span style={{ fontSize: 24 }}>📊</span>
-      <span>Belum ada data tren untuk periode ini</span>
+      <span>tdk ada data tren</span>
     </div>
   )
 
@@ -376,10 +375,10 @@ export default function RiwayatPage() {
             <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 20, color: 'var(--brown-dark)', marginBottom: 3 }}>
               Riwayat Data Sensor
             </h2>
-            <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
+            {/* <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
               {history.total} data tersimpan dari semua sensor IoT
-            </p>
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            </p> */}
+            {/* <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
               {[
                 { color: '#C0392B', label: 'Kering (≤29%) — perlu disiram segera' },
                 { color: '#BA7517', label: 'Rendah (30–44%) — perhatikan' },
@@ -390,7 +389,7 @@ export default function RiwayatPage() {
                   <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{g.label}</span>
                 </div>
               ))}
-            </div>
+            </div> */}
           </div>
 
           {error && (
