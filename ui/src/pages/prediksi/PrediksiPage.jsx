@@ -195,7 +195,6 @@ export default function PrediksiPage() {
             <div className="panel-header">
               <div>
                 <h3>Ringkasan Prediksi</h3>
-                <p>Berdasarkan data sensor terbaru dari semua blok</p>
               </div>
 
             </div>
