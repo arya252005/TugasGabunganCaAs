@@ -1,0 +1,149 @@
+.riwayat-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.riwayat-stat {
+  background: var(--brown-cream);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.riwayat-stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.riwayat-stat-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.riwayat-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.riwayat-select,
+.riwayat-date {
+  padding: 7px 10px;
+  border: 1px solid rgba(107,58,31,0.16);
+  border-radius: 7px;
+  background: var(--brown-cream);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: var(--text-dark);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.riwayat-select:focus,
+.riwayat-date:focus {
+  border-color: var(--green-mid);
+  background: var(--green-mist);
+}
+
+.riwayat-reset-btn {
+  padding: 7px 14px;
+  border: 1px solid rgba(107,58,31,0.14);
+  border-radius: 7px;
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.riwayat-reset-btn:hover {
+  background: var(--brown-cream);
+  color: var(--text-dark);
+}
+
+.riwayat-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  min-width: 700px;
+}
+
+.riwayat-table th {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  padding: 0 12px 8px 0;
+  border-bottom: 1px solid rgba(107,58,31,0.08);
+  white-space: nowrap;
+}
+
+.riwayat-table td {
+  padding: 9px 12px 9px 0;
+  border-bottom: 1px solid rgba(107,58,31,0.05);
+  color: var(--text-dark);
+  vertical-align: middle;
+}
+
+.riwayat-table tr:last-child td { border-bottom: none; }
+
+.riwayat-table tr:hover td {
+  background: rgba(107,58,31,0.02);
+}
+
+.riwayat-time {
+  color: var(--text-muted) !important;
+  font-size: 11px !important;
+  white-space: nowrap;
+}
+
+.riwayat-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(107,58,31,0.07);
+}
+
+.riwayat-page-btn {
+  padding: 6px 14px;
+  border: 1px solid rgba(107,58,31,0.14);
+  border-radius: 6px;
+  background: #FFFDF8;
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.riwayat-page-btn:hover:not(:disabled) {
+  background: var(--brown-cream);
+  color: var(--text-dark);
+}
+
+.riwayat-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.skeleton {
+  background: linear-gradient(90deg,
+    rgba(107,58,31,0.07) 25%,
+    rgba(107,58,31,0.12) 50%,
+    rgba(107,58,31,0.07) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}

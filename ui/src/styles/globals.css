@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:wght@300;400;500&display=swap');
+
+:root {
+  --brown-dark:   #3B1F0A;
+  --brown-mid:    #6B3A1F;
+  --brown-light:  #A0622A;
+  --brown-pale:   #D4A574;
+  --brown-cream:  #F5ECD7;
+  --brown-cream2: #EFE3C8;
+
+  --green-dark:   #1A3A12;
+  --green-mid:    #2D6A1F;
+  --green-light:  #4A9B35;
+  --green-pale:   #8BC87A;
+  --green-mist:   #E8F5E2;
+
+  --text-dark:    #1E1008;
+  --text-mid:     #5C3A1A;
+  --text-light:   #8A6040;
+  --text-muted:   #B09070;
+
+  --white:        #FFFDF8;
+  --shadow-sm:    0 2px 8px rgba(59,31,10,0.10);
+  --shadow-md:    0 6px 24px rgba(59,31,10,0.14);
+  --shadow-lg:    0 16px 48px rgba(59,31,10,0.18);
+
+  --radius-sm:    8px;
+  --radius-md:    12px;
+  --radius-lg:    20px;
+  --radius-xl:    28px;
+  --radius-full:  9999px;
+
+  --transition:   all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--brown-cream);
+  color: var(--text-dark);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+
+input, textarea, select {
+  font-family: 'DM Sans', sans-serif;
+}
