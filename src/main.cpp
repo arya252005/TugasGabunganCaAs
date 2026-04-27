@@ -9,8 +9,8 @@
 #define DHTTYPE DHT11
 #define SOILPIN 5
 
-const char ssid[]      = "Galaxy A73 5GCB26";
-const char password[]  = "dzyy6328";
+const char ssid[]      = "********";
+const char password[]  = "********";
 const char* serverUrl  = "https://caasagriculture-production-ca8e.up.railway.app/sensor/data";
 
 const char* SENSOR_ID = "S-01";
