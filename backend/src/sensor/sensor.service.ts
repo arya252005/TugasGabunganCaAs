@@ -14,10 +14,13 @@ export class SensorService {
     private readonly notifRepo: Repository<Notification>,
   ) {}
 
-  private getKondisi(moisture: number): string {
+  private getKondisi(moisture: number, temp?: number, hum?: number, soil?: number): string {
+    if (soil !== undefined) {
+      if (soil > 500) return 'kering'
+      return 'normal'
+    }
     if (moisture <= 29) return 'kering'
-    if (moisture <= 63) return 'normal'
-    return 'basah'
+    return 'normal'
   }
 
   private getRekomendasi(label: number, moisture: number): string {
@@ -27,6 +30,7 @@ export class SensorService {
     return 'optimal'
   }
 
+  //TODO: call ML API 
   private async callMLApi(dto: CreateSensorDto): Promise<number> {
     const mlUrl = process.env.ML_API_URL
     if (!mlUrl) return dto.label ?? 0
@@ -48,7 +52,7 @@ export class SensorService {
       return result?.hasil_prediksi?.kode_label ?? dto.label ?? 0
 
     } catch (err) {
-      console.warn('ML API fallback to IoT:', err.message)
+      console.warn('ML API fallback to label IoT:', err.message)
       return dto.label ?? 0
     }
   }
@@ -60,16 +64,14 @@ export class SensorService {
     let type: 'danger' | 'warning'
     let message: string
 
-    if (mlLabel === 1 || sensor.moisture <= 29) {
-      type    = 'danger'
-      message = `${sensor.lokasi || sensor.sensorId} perlu disiram sekarang — kelembaban ${sensor.moisture}%`
-    } else if (sensor.moisture < 45) {
-      type    = 'warning'
-      message = `${sensor.lokasi || sensor.sensorId} kelembaban mendekati batas min — ${sensor.moisture}%`
-    } else {
-      return
+    if (sensor.soil <= 500) {
+      return 
     }
 
+    type    = 'danger'
+    message = `${sensor.lokasi || sensor.sensorId} perlu disiram — kelembaban ${sensor.moisture}% soil ${sensor.soil}`
+
+    //TODO: no duplicate 30m (no spam notif)
     const since = new Date(Date.now() - 30 * 60 * 1000)
     const exists = await this.notifRepo.findOne({
       where: { sensorId: sensor.sensorId, type, isRead: false },
@@ -91,12 +93,13 @@ export class SensorService {
 
   async create(dto: CreateSensorDto): Promise<SensorReading> {
     const mlLabel = await this.callMLApi(dto)
-    const kondisi = this.getKondisi(dto.moisture)
+    const kondisi = this.getKondisi(dto.moisture, dto.temp, dto.hum, dto.soil)
 
     const reading = await this.sensorRepo.save(
       this.sensorRepo.create({ ...dto, label: mlLabel, kondisi })
     )
 
+    //TODO: auto generate notif
     await this.generateNotification(reading, mlLabel)
 
     return reading
@@ -109,7 +112,7 @@ export class SensorService {
     return { saved: dtos.length }
   }
 
-    async getLatest(): Promise<any[]> {
+  async getLatest(): Promise<any[]> {
     const raw = await this.sensorRepo.query(`
       SELECT s.*
       FROM sensor_readings s
@@ -124,8 +127,8 @@ export class SensorService {
 
     return raw.map(r => ({
       ...r,
-      status:      r.moisture <= 29 ? 'dry' : r.moisture <= 63 ? 'warn' : 'ok',
-      kondisi:     this.getKondisi(r.moisture),
+      status:      r.soil > 500 ? 'dry' : 'ok',
+      kondisi:     this.getKondisi(r.moisture, r.temp, r.hum, r.soil),
       rekomendasi: this.getRekomendasi(r.label, r.moisture),
     }))
   }
@@ -142,12 +145,11 @@ export class SensorService {
     })
 
     if (!data.length) return []
-    
+
     const points = data.length <= 20 ? data : data.slice(-20)
 
     return points.map(r => {
       const d   = new Date(r.createdAt)
-      //TODO: convert UTC → WIB 
       const wib = new Date(d.getTime() + 7 * 60 * 60 * 1000)
       const hh  = String(wib.getUTCHours()).padStart(2, '0')
       const mm  = String(wib.getUTCMinutes()).padStart(2, '0')
@@ -185,6 +187,7 @@ export class SensorService {
                       : latest.some(s => s.moisture < 45) ? 'siram_nanti'
                       : 'optimal'
 
+    //TODO: Convert time WIB 
     const toWIB = (date: Date): string => date.toLocaleString('id-ID', {
       timeZone: 'Asia/Jakarta',
       hour:     '2-digit',

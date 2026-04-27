@@ -1,0 +1,66 @@
+TODO: Frontend Section
+
+src/
+
+    config/
+        api.config.js = config global frontend -> env
+            BASE_URL         → URL Railway backend
+            USE_DUMMY        → true/false (dummy atau cloud)
+            REFRESH_INTERVAL → interval auto refresh (10000ms) 
+        
+    hooks/
+        useSensor.js = custom react hooks -> ambil data dari API
+            useDashboard()
+            → GET /dashboard/summary
+            → auto refresh tiap REFRESH_INTERVAL (env)
+            → return { data, loading, error, refetch }
+
+            useSensors()
+            → GET /sensor/latest
+            → auto refresh
+            → return { sensors, loading, error }
+
+            useSensorHistory()
+            → GET /sensor/history
+            → return { history, loading, error }
+
+            useNotifications()
+            → GET /notification/summary
+            → return { notifications, unreadCount, markAsRead }
+
+    services/
+        authService.js
+            login()           → POST /auth/login → simpan token + user ke localStorage
+            register()        → POST /auth/register
+            logout()          → hapus localStorage → redirect ke /auth
+            isAuthenticated() → cek apakah token ada di localStorage
+            getUser()         → ambil data user dari localStorage
+
+        sensorService.js
+            getLatestSensors()    → GET /sensor/latest
+            getSensorHistory()    → GET /sensor/history
+            getDashboardSummary() → GET /dashboard/summary
+            riwayatService        → GET /riwayat, /riwayat/stats, /riwayat/sensors
+            notifikasiService     → GET /notification, PATCH read, PATCH read-all
+
+        http.js : base http - fetch API
+            get()   → fetch GET dengan JWT header
+            post()  → fetch POST dengan JWT header
+            patch() → fetch PATCH dengan JWT header
+
+            401 handler → kalau token expired → logout otomatis
+            timeout     → 10 detik → throw error
+
+        router/index.jsx = defined all router page
+            /          → redirect ke /auth
+            /auth      → AuthPage (login/register)
+            /dashboard → DashboardPage (protected)
+            /sensor    → SensorPage (protected)
+            /prediksi  → PrediksiPage (protected)
+            /riwayat   → RiwayatPage (protected)
+            /notifikasi → NotifikasiPage (protected)
+
+            ProtectedRoute → cek isAuthenticated()
+                        → kalau tidak login → redirect ke /auth
+
+        

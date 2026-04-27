@@ -1,0 +1,254 @@
+//TODO: backend Section
+
+Auth:
+    auth.controller.ts = 
+        POST /auth/register  → terima data pendaftaran, kirim ke authService.register()
+        POST /auth/login     → terima email+password, kirim ke authService.login()
+        GET  /auth/profile   → ambil data user yang sedang login ( need JWT)
+
+    DTO = Data Transfer Object
+    auth.dto.ts = (validasi)
+        RegisterDto → name, email, password (wajib diisi, minimal 8 karakter)
+        LoginDto    → email, password
+    
+    auth.module.ts = (daftar komponen ke nestJS) ga ada ini, nest gatau kalau auth ada
+        imports   → JwtModule (setting secret + expiry), UsersModule
+        providers → AuthService, JwtStrategy
+        controllers → AuthController
+
+    auth.services.ts = (logic auth)
+        register() → hash pw bcrypt → save DB → return user
+        login()    → cari user by email → bandingkan password → buat JWT token
+        getProfile() → ambil data user dari DB by id
+
+    jwt.strategy.ts = validasi JWT token, jalan otomatis /request yg butuh auth
+
+Common/guards/
+    jwt.auth.guard.ts = memastikan request dng JWT valid bs masuk. Dipasang di controller @UseGuards(JwtAuthGuard)
+                        if token == null / expired return 401 / unauthorized
+
+config:
+    database.config.ts = config connect mySql. return typeORM
+        host     → DB_HOST (railway)
+        port     → DB_PORT
+        username → DB_USERNAME
+        password → DB_PASSWORD
+        database → DB_NAME
+        entities → [User, SensorReading, Notification]
+        synchronize → true (auto buat/update tabel saat restart)
+
+notification: 
+    notification.entity.ts = defined structure table notifications mySql
+        id        → primary key auto increment
+        type      → enum: danger | warning
+        message   → pesan notifikasi
+        sensorId  → sensorId
+        lokasi    → lokasi sensor
+        moisture  → nilai kelembaban saat notif dibuat
+        isRead    → sudah dibaca atau belum
+        createdAt → waktu dibuat otomatis
+
+    notification.service.ts = logic notif
+        generateFromSensor() → cek soil > 500 → notif danger
+                             → cek duplikat 30 menit → skip
+        getAll()            → take all notif with filter isRead
+        markRead()          → update isRead=true utk 1 notif
+        markAllRead()       → update semua isRead=true
+        deleteOld()         → hapus notif > 7 hari yang sudah dibaca
+        getSummary()        → hitung unreadCount + 5 notif terbaru (untuk bell icon)
+
+    notification.controller.ts = endpoint HTTP notif
+        GET    /notification           → all notif (filter isRead)
+        GET    /notification/summary   → untuk badge bell icon -> topbar
+        PATCH  /notification/:id/read  → tandai 1 notif dibaca
+        PATCH  /notification/read-all  → tandai semua dibaca
+        DELETE /notification/old       → hapus notif lama
+
+    notification.module.ts = daftar komponen notif -> nestJS. Import sensor reading karena notification.service.ts butuh akses sensor data
+
+prediction:
+    prediction.service.ts = logic predict siram berdasar sensor
+        getLatestPrediction() → ambil data terbaru dari sensor_readings
+                                → hitung moisture rata-rata
+                                → tentukan rekomendasi: siram_sekarang / siram_nanti
+                                → hitung waktu siram WIB
+                                → return summary prediksi
+
+        predict()            → kalkulasi per sensor
+                            → soil > 500 → siram_sekarang
+                            → soil ≤ 500 → optimal
+
+    prediction.controller.ts =
+        GET  /prediction/latest  → prediksi all sensor terbaru
+  
+    prediction.module.ts =
+        daftar prediction ke nestJS. import sensorReading karena prediksi dapat dari db sensor_readings (no need new table)
+
+riwayat:
+    riwayat.service.ts = query data historis dari tabel sensor_readings
+        getHistory() → ambil data dengan filter sensorId, kondisi, tanggal
+                    → pagination 50 data / halaman
+                    → return data + total + totalPages
+
+        getStats()   → hitung avg, min, max moisture
+                    → buat trend chart: 20 titik terbaru per data point
+                    → return statistik + trend
+
+        getSensorList() → daftar sensor unik yg pernah kirim data
+
+    riwayat.controller.ts = 
+        GET /riwayat              → data historis dengan filter & pagination
+        GET /riwayat/stats        → statistik + trend chart
+        GET /riwayat/sensors      → daftar sensor
+
+    riwayat.module.ts = no need new entity. use db sensor_readings
+
+sensor:
+    sensor.entity.ts = structure table sensor_readings
+        id        → primary key
+        sensorId  → "S-01"
+        lokasi    → "Telkom"
+        temp      → suhu udara float
+        hum       → kelembaban udara float
+        soil      → ADC raw 0-4095
+        moisture  → kelembaban tanah 0-100%
+        label     → 0 atau 1 (hasil ML)
+        kondisi   → kering/normal (dari soil threshold)
+        createdAt → waktu data masuk
+
+    sensor.service.ts = manage all logic control
+        callMLApi()    → POST ke ML API Railway { temp, hum, soil }
+                        → return label 0/1
+                        → timeout 5 detik, fallback ke label IoT
+
+        getKondisi()   → soil > 500 → kering
+                      → soil ≤ 500 → normal
+
+        getRekomendasi() → tentukan siram_sekarang/siram_nanti/optimal
+
+        generateNotification() → soil > 500 → danger
+                            → cek duplikat 30 menit
+                            → simpan ke notifications
+
+        create()       → terima dari IoT
+                     → panggil callMLApi()
+                    → getKondisi()
+                    → simpan sensor_readings
+                    → generateNotification()
+
+        getLatest()    → data terbaru per sensor (query SQL)
+
+        getHistory()   → 20 titik terbaru untuk grafik dashboard
+
+        getDashboardSummary() → getLatest() + getHistory()
+                            → hitung avg moisture, avg temp
+                            → tentukan rekomendasi
+                            → ambil notif terbaru
+                            → return semua dalam 1 response
+
+    sensor.controller.ts =
+        POST /sensor/data              → terima data dari IoT/simulator
+        GET  /sensor/latest            → data terbaru per sensor
+        GET  /sensor/history           → riwayat untuk grafik
+
+    dashboard.controller.ts = 
+        GET /dashboard/summary → panggil sensor.service.getDashboardSummary()
+                               → 1 endpoint ini return semua data dashboard
+
+    sensor.dto.ts = validasi payload from IoT
+        CreateSensorDto → sensorId, lokasi, temp, hum, soil, moisture, label
+
+    sensor.module.ts
+        Import SensorReading + Notification entity karena SensorService butuh keduanya untuk simpan data dan buat notifikasi
+
+users:
+    user.entity.ts = structure table db users
+        id       → primary key
+        name     → nama lengkap
+        email    → unique
+        password → bcrypt hash
+        role     → default Admin
+        isActive → default true
+
+    users.service.ts = 
+        create()      → hash password → simpan user baru
+        findByEmail() → cari user untuk login
+        findById()    → cari user untuk profile
+        sanitize()    → hapus password sebelum return ke frontend
+
+    users.module.ts = export userService utk digunakan AuthModule
+
+    app.module.ts = Root Module -> daftar semua module ke nestJS
+        ConfigModule      → baca .env
+        TypeOrmModule     → koneksi MySQL dari database.config.ts
+        AuthModule
+        UsersModule
+        SensorModule
+        PredictionModule
+        RiwayatModule
+        NotificationModule
+
+    main.ts = titik awal nestJS jalan
+        enableCors()        → izinkan request dari frontend (localhost:5173)
+        ValidationPipe      → aktifkan validasi DTO otomatis
+        app.listen(3000)    → jalankan server di port 3000
+
+//TODO: Definition
+    Controller: Menerima req HTTP dan return response
+        Yang dilakukan controller:
+        - Mendefinisikan endpoint (GET, POST, PATCH, DELETE)
+        - Mengambil data dari request (body, params, query)
+        - Memanggil service
+        - Mengembalikan response ke client
+
+        Yang TIDAK dilakukan controller:
+        - Tidak boleh ada logika bisnis
+        - Tidak boleh langsung akses database
+        - Hanya jadi "pintu masuk" request
+
+    Service: Logic Section  
+        Yang dilakukan service:
+        - Proses dan kalkulasi data
+        - Panggil database (via repository)
+        - Panggil API eksternal (ML API)
+        - Buat notifikasi
+        - Hitung waktu, rata-rata, threshold
+
+        Yang TIDAK dilakukan service:
+        - Tidak tahu tentang HTTP request/response
+        - Tidak handle header, status code
+
+    Module: Mendaftar dan menghubungkan semua komponen
+        Yang dilakukan module:
+        - Daftarkan controller + service ke NestJS
+        - Import module lain yang dibutuhkan
+        - Export service agar bisa dipakai module lain
+        - Import entity untuk TypeORM
+
+    Entity: Defined structure table db
+        Yang dilakukan entity:
+        - Setiap class = 1 tabel di MySQL
+        - Setiap property = 1 kolom
+        - Mendefinisikan tipe data, constraint, default value
+        - TypeORM baca entity → auto buat/update tabel
+
+    DTO (Data Transfer Object): validasi n definisi format yg masuk
+        Yang dilakukan DTO:
+        - Definisikan field apa yang boleh diterima
+        - Validasi tipe data (string, number, dll)
+        - Validasi isi (tidak boleh kosong, minimal karakter)
+        - Whitelist field (field tidak terdaftar otomatis dibuang)
+
+    Guard: Menjaga endpoint
+        Yang dilakukan guard:
+        - Cek apakah request boleh masuk
+        - Validasi JWT token
+        - Return true = boleh masuk
+        - Return false / throw = 401 Unauthorized
+
+    Strategy: Definisi cara validasi token
+        Yang dilakukan strategy:
+- Decode JWT token
+- Validasi isi token (expired, signature)
+- Ambil user dari database
+- Pass data user ke request
