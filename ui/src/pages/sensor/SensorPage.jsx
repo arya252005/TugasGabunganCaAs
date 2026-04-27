@@ -241,14 +241,12 @@ function SensorDetail({ sensor, onClose }) {
             <span className="detail-metric-value">{sensor.hum}</span>
             <span className="detail-metric-unit">%</span>
           </div>
-          <div className="detail-metric-sub">DHT11</div>
         </div>
         <div className="detail-metric">
           <div className="detail-metric-label">Raw Soil ADC</div>
           <div>
             <span className="detail-metric-value" style={{ fontSize: 22 }}>{sensor.soil}</span>
           </div>
-          <div className="detail-metric-sub">0 — 4095</div>
         </div>
       </div>
 

@@ -1,0 +1,4 @@
+Procfile: memberi tau railway cara jalankan app
+    no procfile -> railway tidak tau perintah apa yg harus dijalankan
+
+requirements.txt: daftar lib python yang dibutuhkan apps

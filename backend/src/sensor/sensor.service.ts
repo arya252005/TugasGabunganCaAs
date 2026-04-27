@@ -180,7 +180,7 @@ export class SensorService {
 
     const avgMoisture      = Math.round(latest.reduce((a, s) => a + s.moisture, 0) / latest.length)
     const avgTemperature   = parseFloat((latest.reduce((a, s) => a + s.temp, 0) / latest.length).toFixed(1))
-    const activeSensors    = Math.min(latest.length, 1) // 1 sensor
+    const activeSensors    = Math.min(latest.length, 1) 
     const sensorsNeedWater = latest.some(s => s.label === 1 || s.moisture < 30) ? 1 : 0
 
     const rekomendasi = sensorsNeedWater > 0 ? 'siram_sekarang'
